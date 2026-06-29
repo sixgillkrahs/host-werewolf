@@ -47,27 +47,28 @@ const CallingOrderList = ({ selectedRoles, onUpdateRoleSettings, onResetOrder })
   };
 
   return (
-    <div className="glass-panel p-4 sm:p-6 rounded-2xl border border-[var(--color-neon-blue-dim)] shadow-[0_0_20px_rgba(102,252,241,0.1)]">
+    <div className="glass-panel p-4 sm:p-6 rounded-2xl border border-gray-200 shadow-sm bg-white">
+      {/* Header */}
       <div className="flex justify-between items-center mb-5 gap-2">
         <div className="flex items-center gap-2 sm:gap-3">
-          <Timer className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--color-neon-blue)]" />
-          <h2 className="text-sm sm:text-xl font-bold tracking-wide text-white uppercase">THỨ TỰ & THỜI GIAN</h2>
+          <Timer className="w-5 h-5 sm:w-6 sm:h-6 text-[#10b981]" />
+          <h2 className="text-sm sm:text-lg font-extrabold tracking-wide text-slate-800 uppercase">THỨ TỰ & THỜI GIAN</h2>
         </div>
         <button
           onClick={onResetOrder}
-          className="text-[10px] sm:text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold py-1 sm:py-1.5 px-2 sm:px-3 rounded-lg flex items-center gap-1 border border-gray-700 hover:border-gray-500 transition-all"
+          className="text-[10px] sm:text-xs bg-white hover:bg-gray-50 text-gray-500 font-bold py-1.5 px-3 rounded-xl flex items-center gap-1 border border-gray-250 transition-all shadow-sm"
         >
           <RefreshCw className="w-3 h-3" /> Mặc định
         </button>
       </div>
 
       {wakingRoles.length === 0 ? (
-        <div className="text-center py-8 text-xs text-gray-500 border border-dashed border-gray-800 rounded-xl px-4">
+        <div className="text-center py-10 text-xs text-gray-400 border border-dashed border-gray-200 rounded-2xl px-4">
           Chưa chọn vai trò nào thức dậy ban đêm.
-          <br /> Hãy bật các vai trò thức giấc ở bảng danh sách.
+          <br /> Hãy bật các vai trò có gắn nhãn "Đêm" ở danh sách.
         </div>
       ) : (
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           {wakingRoles.map((role, index) => {
             const IconComponent = Icons[role.icon] || Icons.HelpCircle;
             const isEditing = editingScriptId === role.id;
@@ -75,36 +76,36 @@ const CallingOrderList = ({ selectedRoles, onUpdateRoleSettings, onResetOrder })
             return (
               <div
                 key={role.id}
-                className="bg-[#1f2833] bg-opacity-30 border border-gray-850 rounded-xl p-3 sm:p-4 flex flex-col gap-2.5 hover:border-gray-700 transition-all"
+                className="bg-[#f8fafc] border border-gray-200 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-3 hover:border-gray-300 transition-all hover:bg-white"
               >
                 {/* Header Dòng: Tên vai trò và Nút bấm điều khiển */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   
                   {/* Cột Trái: Thứ tự & Tên */}
                   <div className="flex items-center gap-2.5">
-                    <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[var(--color-neon-blue-dim)] text-[var(--color-neon-blue)] flex items-center justify-center font-mono font-bold text-xs sm:text-sm border border-[var(--color-neon-blue)] border-opacity-30">
+                    <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#ecfdf5] text-[#059669] flex items-center justify-center font-mono font-bold text-xs sm:text-sm border border-emerald-200">
                       {index + 1}
                     </span>
-                    <div className="p-1.5 rounded-lg bg-gray-800 text-gray-300">
-                      <IconComponent className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <div className="p-2 rounded-xl bg-white border border-gray-200 text-slate-500 shadow-sm">
+                      <IconComponent className="w-4.5 h-4.5 sm:w-5 h-5" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-white text-xs sm:text-base flex items-center gap-1.5">
-                        {role.name}
-                        <span className="text-[9px] sm:text-xs font-normal text-gray-500">({role.englishName})</span>
+                      <h4 className="font-extrabold text-[#0f172a] text-xs sm:text-base flex items-baseline gap-1.5">
+                        <span>{role.name}</span>
+                        <span className="text-[9px] sm:text-xs font-normal text-gray-450">({role.englishName})</span>
                       </h4>
                     </div>
                   </div>
 
-                  {/* Cột Phải: Timer + Move Buttons (Tự động co giãn/xuống dòng trên mobile) */}
-                  <div className="flex items-center justify-between sm:justify-end gap-2.5 sm:gap-4 border-t border-gray-800 border-opacity-30 pt-2.5 sm:pt-0 sm:border-none">
+                  {/* Cột Phải: Timer + Move Buttons (Co giãn/xuống dòng trên mobile) */}
+                  <div className="flex items-center justify-between sm:justify-end gap-2.5 sm:gap-4 border-t border-gray-200 pt-2.5 sm:pt-0 sm:border-none">
                     
                     {/* Bộ chỉnh thời gian chạm (touch-friendly) */}
-                    <div className="flex items-center gap-1 bg-gray-900 bg-opacity-50 border border-gray-850 rounded-lg p-0.5">
-                      <span className="text-[9px] sm:text-xs text-gray-500 px-1 sm:px-1.5">Đợi:</span>
+                    <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
+                      <span className="text-[9px] sm:text-xs text-gray-400 px-1 sm:px-1.5 font-bold">Giây:</span>
                       <button
                         onClick={() => handleDurationChange(role.id, role.defaultDuration - 1)}
-                        className="w-5.5 h-5.5 sm:w-7 sm:h-7 rounded bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white flex items-center justify-center font-bold text-xs"
+                        className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800 flex items-center justify-center font-bold text-xs active:scale-95 transition-all"
                       >
                         -
                       </button>
@@ -112,12 +113,11 @@ const CallingOrderList = ({ selectedRoles, onUpdateRoleSettings, onResetOrder })
                         type="number"
                         value={role.defaultDuration}
                         onChange={(e) => handleDurationChange(role.id, e.target.value)}
-                        className="w-8 sm:w-10 bg-transparent text-center text-xs sm:text-sm font-bold text-[var(--color-neon-blue)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        className="w-8 sm:w-10 bg-transparent text-center text-xs sm:text-sm font-extrabold text-[#059669] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
-                      <span className="text-[9px] sm:text-xs text-gray-400 pr-1">s</span>
                       <button
                         onClick={() => handleDurationChange(role.id, role.defaultDuration + 1)}
-                        className="w-5.5 h-5.5 sm:w-7 sm:h-7 rounded bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white flex items-center justify-center font-bold text-xs"
+                        className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800 flex items-center justify-center font-bold text-xs active:scale-95 transition-all"
                       >
                         +
                       </button>
@@ -128,60 +128,60 @@ const CallingOrderList = ({ selectedRoles, onUpdateRoleSettings, onResetOrder })
                       <button
                         onClick={() => moveRole(index, "up")}
                         disabled={index === 0}
-                        className={`p-1.5 sm:p-2 rounded bg-gray-900 border border-gray-850 text-gray-400 hover:bg-gray-800 hover:text-white transition-all ${
+                        className={`p-1.5 sm:p-2 rounded-xl bg-white border border-gray-250 text-gray-500 hover:bg-gray-55 hover:text-gray-800 shadow-sm transition-all ${
                           index === 0 ? "opacity-30 cursor-not-allowed" : ""
                         }`}
                         title="Di chuyển lên"
                       >
-                        <ArrowUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        <ArrowUp className="w-3.5 h-3.5 sm:w-4 h-4" />
                       </button>
                       <button
                         onClick={() => moveRole(index, "down")}
                         disabled={index === wakingRoles.length - 1}
-                        className={`p-1.5 sm:p-2 rounded bg-gray-900 border border-gray-850 text-gray-400 hover:bg-gray-800 hover:text-white transition-all ${
+                        className={`p-1.5 sm:p-2 rounded-xl bg-white border border-gray-250 text-gray-500 hover:bg-gray-55 hover:text-gray-800 shadow-sm transition-all ${
                           index === wakingRoles.length - 1 ? "opacity-30 cursor-not-allowed" : ""
                         }`}
                         title="Di chuyển xuống"
                       >
-                        <ArrowDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        <ArrowDown className="w-3.5 h-3.5 sm:w-4 h-4" />
                       </button>
                     </div>
                   </div>
 
                 </div>
 
-                {/* Edit Kịch bản lời thoại gọi vai trò (Responsive) */}
-                <div className="border-t border-gray-850 border-opacity-50 pt-2">
+                {/* Edit Kịch bản lời thoại gọi vai trò */}
+                <div className="border-t border-gray-200 border-opacity-70 pt-2.5">
                   {isEditing ? (
-                    <div className="space-y-2 mt-1">
+                    <div className="space-y-2.5 mt-1">
                       <div>
-                        <label className="text-[8px] sm:text-[10px] text-gray-500 font-bold block mb-1">KỊCH BẢN THỨC GIẤC</label>
+                        <label className="text-[8px] sm:text-[9px] text-gray-400 font-extrabold block mb-1 uppercase tracking-wider">KỊCH BẢN THỨC GIẤC</label>
                         <textarea
                           rows="2"
                           value={tempScripts.wakeScript}
                           onChange={(e) => setTempScripts(prev => ({ ...prev, wakeScript: e.target.value }))}
-                          className="w-full bg-[#0b0c10] border border-gray-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-[var(--color-neon-blue)]"
+                          className="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs text-slate-800 focus:outline-none focus:border-[#10b981] shadow-sm transition-all"
                         />
                       </div>
                       <div>
-                        <label className="text-[8px] sm:text-[10px] text-gray-500 font-bold block mb-1">KỊCH BẢN ĐI NGỦ</label>
+                        <label className="text-[8px] sm:text-[9px] text-gray-400 font-extrabold block mb-1 uppercase tracking-wider">KỊCH BẢN ĐI NGỦ</label>
                         <textarea
                           rows="1"
                           value={tempScripts.sleepScript}
                           onChange={(e) => setTempScripts(prev => ({ ...prev, sleepScript: e.target.value }))}
-                          className="w-full bg-[#0b0c10] border border-gray-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-[var(--color-neon-blue)]"
+                          className="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs text-slate-800 focus:outline-none focus:border-[#10b981] shadow-sm transition-all"
                         />
                       </div>
                       <div className="flex justify-end gap-2 mt-1">
                         <button
                           onClick={() => setEditingScriptId(null)}
-                          className="px-2 py-1 text-xs text-gray-400 hover:text-white"
+                          className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-800 font-bold"
                         >
                           Hủy
                         </button>
                         <button
                           onClick={() => saveScript(role.id)}
-                          className="px-2.5 py-1 text-xs bg-[var(--color-neon-blue)] text-[#0b0c10] font-bold rounded-md hover:bg-opacity-80 flex items-center gap-1"
+                          className="px-3.5 py-1.5 text-xs bg-[#10b981] text-white font-bold rounded-xl hover:bg-opacity-90 flex items-center gap-1 shadow-sm active:scale-95 transition-all"
                         >
                           <Check className="w-3.5 h-3.5" /> Lưu
                         </button>
@@ -189,13 +189,13 @@ const CallingOrderList = ({ selectedRoles, onUpdateRoleSettings, onResetOrder })
                     </div>
                   ) : (
                     <div className="flex items-start justify-between gap-3 mt-0.5">
-                      <div className="text-[10px] sm:text-xs text-gray-400 flex-1 min-w-0">
-                        <span className="text-[8px] sm:text-[10px] font-bold text-gray-600 block uppercase">Kịch bản thoại</span>
-                        <p className="italic truncate">"{role.wakeScript}"</p>
+                      <div className="text-[10px] sm:text-xs text-gray-500 flex-1 min-w-0">
+                        <span className="text-[8px] sm:text-[9px] font-bold text-gray-400 block uppercase tracking-wider mb-0.5">Kịch bản thoại</span>
+                        <p className="italic truncate text-slate-700">"{role.wakeScript}"</p>
                       </div>
                       <button
                         onClick={() => startEditingScript(role)}
-                        className="text-gray-500 hover:text-[var(--color-neon-blue)] p-1 transition-all flex items-center gap-0.5 text-[9px] sm:text-[10px] flex-shrink-0"
+                        className="text-gray-400 hover:text-[#10b981] p-1.5 transition-all flex items-center gap-0.5 text-[10px] font-bold flex-shrink-0 bg-white border border-gray-200 rounded-lg hover:shadow-sm"
                       >
                         <Edit3 className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> Sửa
                       </button>

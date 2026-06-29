@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Space+Grotesk:wght@400;500;700&display=swap');
+@import "tailwindcss";
 
 :root {
   /* Tông màu chủ đạo - PURE WHITE THEME */
@@ -28,21 +29,10 @@
   --shadow-lg: 0 16px 36px rgba(15, 23, 42, 0.08), 0 4px 12px rgba(15, 23, 42, 0.04);
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
 body {
   background-color: #ffffff;
   color: var(--color-text-primary);
   font-family: var(--font-sans);
-  line-height: 1.5;
-  min-height: 100vh;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
@@ -58,30 +48,6 @@ body {
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
-  font-weight: 700;
-  color: var(--color-text-primary);
-  letter-spacing: -0.02em;
-}
-
-/* Glassmorphism Panel - Tinh chỉnh đổ bóng, viền và padding mặc định cho khối */
-.glass-panel {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  
-  /* Bổ sung padding mặc định cho các khối */
-  padding: 1.5rem !important;
-  border-radius: 1rem !important;
-}
-
-.glass-panel:hover {
-  border-color: #cbd5e1;
-  box-shadow: var(--shadow-md);
-}
-
-.border-gray-200 {
-  border-color: #e2e8f0 !important;
 }
 
 /* Custom Scrollbar */
@@ -103,36 +69,6 @@ h1, h2, h3, h4, h5, h6 {
   background: #cbd5e1;
 }
 
-/* Hide scrollbar for elements with .scrollbar-none */
-.scrollbar-none::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-none {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* Lưới vai trò */
-.layout-grid-roles {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.25rem;
-}
-
-@media (max-width: 640px) {
-  .layout-grid-roles {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-  }
-}
-
-@media (max-width: 375px) {
-  .layout-grid-roles {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
-  }
-}
-
 /* Custom range input slider */
 input[type="range"] {
   -webkit-appearance: none;
@@ -152,12 +88,11 @@ input[type="range"]::-webkit-slider-thumb {
   background: #10b981;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
 }
 
 input[type="range"]::-webkit-slider-thumb:hover {
   transform: scale(1.15);
-  box-shadow: 0 3px 8px rgba(16, 185, 129, 0.4);
 }
 
 /* Nút thiết lập nhanh theo số người chơi */
@@ -185,51 +120,39 @@ input[type="range"]::-webkit-slider-thumb:hover {
   transform: translateY(0);
 }
 
-/* --- UTILITY PADDING & MARGIN CLASSES (Bản vá cho hệ thống không chạy Tailwind CSS) --- */
-.flex { display: flex !important; }
-.flex-col { flex-direction: column !important; }
-.justify-between { justify-content: space-between !important; }
-.items-start { align-items: flex-start !important; }
-.items-center { align-items: center !important; }
-.items-baseline { align-items: baseline !important; }
+/* Glassmorphism Panel - Tối ưu hóa trên nền trắng tinh */
+.glass-panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
 
-/* Padding utilities */
-.p-4 { padding: 1rem !important; }
-.p-5 { padding: 1.25rem !important; }
-.p-6 { padding: 1.5rem !important; }
-.px-3 { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
-.px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
-.px-6 { padding-left: 1.5rem !important; padding-right: 1.5rem !important; }
-.py-2 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
-.py-4 { padding-top: 1rem !important; padding-bottom: 1rem !important; }
-.py-6 { padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; }
-.py-10 { padding-top: 2.5rem !important; padding-bottom: 2.5rem !important; }
+.glass-panel:hover {
+  border-color: #cbd5e1;
+  box-shadow: var(--shadow-md);
+}
 
-/* Spacing utilities */
-.gap-1 { gap: 0.25rem !important; }
-.gap-1\5 { gap: 0.375rem !important; }
-.gap-2 { gap: 0.5rem !important; }
-.gap-2\5 { gap: 0.625rem !important; }
-.gap-3 { gap: 0.75rem !important; }
-.gap-4 { gap: 1rem !important; }
-.gap-6 { gap: 1.5rem !important; }
+/* Lưới vai trò */
+.layout-grid-roles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
 
-.mb-1 { margin-bottom: 0.25rem !important; }
-.mb-2 { margin-bottom: 0.5rem !important; }
-.mb-3 { margin-bottom: 0.75rem !important; }
-.mb-4 { margin-bottom: 1rem !important; }
+@media (max-width: 640px) {
+  .layout-grid-roles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+}
 
-.mt-3 { margin-top: 0.75rem !important; }
-.mt-4 { margin-top: 1rem !important; }
-.mt-6 { margin-top: 1.5rem !important; }
-.mt-8 { margin-top: 2rem !important; }
-
-.pt-2\5 { padding-top: 0.625rem !important; }
-.pt-3 { padding-top: 0.75rem !important; }
-
-/* Hoạt động giống Tailwind space-y */
-.space-y-3 > * + * { margin-top: 0.75rem !important; }
-.space-y-6 > * + * { margin-top: 1.5rem !important; }
+@media (max-width: 375px) {
+  .layout-grid-roles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+}
 
 /* --- HỆ THỐNG PHONG CÁCH CHO ROLE CARD NỀN SÁNG (NHẤT QUÁN & CÓ PADDING) --- */
 
@@ -239,26 +162,12 @@ input[type="range"]::-webkit-slider-thumb:hover {
   background-color: #f8fafc;
   opacity: 0.75;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  
-  /* Padding và Layout chuẩn CSS */
-  padding: 1.25rem !important;
-  border-radius: 1rem !important;
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: space-between !important;
-  min-height: 175px !important;
-}
-
-@media (max-width: 768px) {
-  .glass-panel {
-    padding: 1rem !important;
-  }
+  min-height: 175px;
 }
 
 @media (max-width: 640px) {
   .role-card-custom {
-    padding: 1rem !important;
-    min-height: 160px !important;
+    min-height: 160px;
   }
 }
 
@@ -281,7 +190,6 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .role-card-selected-werewolf .role-title { color: #991b1b !important; }
 .role-card-selected-werewolf .role-desc { color: #7f1d1d !important; }
 .role-card-selected-werewolf .role-badge { background-color: #fee2e2 !important; color: #dc2626 !important; border-color: #fca5a5 !important; }
-.role-card-selected-werewolf .role-toggle-bg { background-color: #ef4444 !important; border-color: #ef4444 !important; }
 .role-card-selected-werewolf .role-icon-wrapper { color: #ef4444 !important; border-color: #fca5a5 !important; }
 
 /* 2. PHE DÂN LÀNG KHI ĐƯỢC CHỌN */
@@ -295,7 +203,6 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .role-card-selected-villager .role-title { color: #065f46 !important; }
 .role-card-selected-villager .role-desc { color: #064e3b !important; }
 .role-card-selected-villager .role-badge { background-color: #d1fae5 !important; color: #047857 !important; border-color: #a7f3d0 !important; }
-.role-card-selected-villager .role-toggle-bg { background-color: #10b981 !important; border-color: #10b981 !important; }
 .role-card-selected-villager .role-icon-wrapper { color: #059669 !important; border-color: #a7f3d0 !important; }
 
 /* 3. PHE CHÁN ĐỜI (TANNERS) KHI ĐƯỢC CHỌN */
@@ -309,34 +216,4 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .role-card-selected-tanner .role-title { color: #92400e !important; }
 .role-card-selected-tanner .role-desc { color: #78350f !important; }
 .role-card-selected-tanner .role-badge { background-color: #fef3c7 !important; color: #b45309 !important; border-color: #fde68a !important; }
-.role-card-selected-tanner .role-toggle-bg { background-color: #f59e0b !important; border-color: #f59e0b !important; }
 .role-card-selected-tanner .role-icon-wrapper { color: #d97706 !important; border-color: #fde68a !important; }
-
-/* Các thành phần con của Toggle Switch */
-.role-toggle-bg {
-  width: 42px;
-  height: 24px;
-  border-radius: 12px;
-  background-color: #cbd5e1;
-  border: 1px solid #cbd5e1;
-  position: relative;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.role-toggle-knob {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background-color: #ffffff;
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Chuyển dịch công tắc khi được chọn */
-.role-card-selected-werewolf .role-toggle-knob,
-.role-card-selected-villager .role-toggle-knob,
-.role-card-selected-tanner .role-toggle-knob {
-  transform: translateX(18px);
-}

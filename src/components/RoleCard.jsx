@@ -10,12 +10,12 @@ const RoleCard = ({ role, isSelected, onToggle }) => {
     if (!isSelected) return "role-card-custom";
     switch (role.team) {
       case "werewolf":
-        return "role-card-selected-werewolf";
+        return "role-card-custom role-card-selected-werewolf";
       case "tanner":
-        return "role-card-selected-tanner";
+        return "role-card-custom role-card-selected-tanner";
       case "villager":
       default:
-        return "role-card-selected-villager";
+        return "role-card-custom role-card-selected-villager";
     }
   };
 
@@ -38,9 +38,9 @@ const RoleCard = ({ role, isSelected, onToggle }) => {
         </div>
 
         {/* Thông tin vai trò */}
-        <h3 className="text-sm sm:text-base font-extrabold tracking-wide mb-1 flex items-baseline gap-1.5 role-title text-[#1e293b]">
+        <h3 className="text-sm sm:text-base font-extrabold tracking-wide mb-1 flex flex-wrap items-baseline gap-1.5 role-title text-[#1e293b]">
           <span>{role.name}</span>
-          <span className="text-[9px] sm:text-xs font-normal font-mono text-gray-400">({role.englishName})</span>
+          <span className="text-[9px] sm:text-xs font-normal font-mono text-gray-400 block sm:inline">({role.englishName})</span>
         </h3>
         <p className="text-[10px] sm:text-xs leading-relaxed mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3 role-desc text-[#64748b]">
           {role.description}
