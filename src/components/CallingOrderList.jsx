@@ -1,14 +1,28 @@
 import React, { useState } from "react";
 import * as Icons from "lucide-react";
-import { ArrowUp, ArrowDown, Timer, Edit3, Check, RefreshCw } from "lucide-react";
+import {
+  ArrowUp,
+  ArrowDown,
+  Timer,
+  Edit3,
+  Check,
+  RefreshCw,
+} from "lucide-react";
 
-const CallingOrderList = ({ selectedRoles, onUpdateRoleSettings, onResetOrder }) => {
+const CallingOrderList = ({
+  selectedRoles,
+  onUpdateRoleSettings,
+  onResetOrder,
+}) => {
   const [editingScriptId, setEditingScriptId] = useState(null);
-  const [tempScripts, setTempScripts] = useState({ wakeScript: "", sleepScript: "" });
+  const [tempScripts, setTempScripts] = useState({
+    wakeScript: "",
+    sleepScript: "",
+  });
 
   // Lọc ra các vai trò có thức giấc ban đêm
   const wakingRoles = selectedRoles
-    .filter(r => r.wakesUp)
+    .filter((r) => r.wakesUp)
     .sort((a, b) => a.defaultOrder - b.defaultOrder);
 
   const moveRole = (index, direction) => {
@@ -34,14 +48,14 @@ const CallingOrderList = ({ selectedRoles, onUpdateRoleSettings, onResetOrder })
     setEditingScriptId(role.id);
     setTempScripts({
       wakeScript: role.wakeScript || "",
-      sleepScript: role.sleepScript || ""
+      sleepScript: role.sleepScript || "",
     });
   };
 
   const saveScript = (roleId) => {
     onUpdateRoleSettings(roleId, {
       wakeScript: tempScripts.wakeScript,
-      sleepScript: tempScripts.sleepScript
+      sleepScript: tempScripts.sleepScript,
     });
     setEditingScriptId(null);
   };
@@ -52,7 +66,9 @@ const CallingOrderList = ({ selectedRoles, onUpdateRoleSettings, onResetOrder })
       <div className="flex justify-between items-center mb-5 gap-2">
         <div className="flex items-center gap-2 sm:gap-3">
           <Timer className="w-5 h-5 sm:w-6 sm:h-6 text-[#10b981]" />
-          <h2 className="text-sm sm:text-lg font-extrabold tracking-wide text-slate-800 uppercase">THỨ TỰ & THỜI GIAN</h2>
+          <h2 className="text-sm sm:text-lg font-extrabold tracking-wide text-slate-800 uppercase">
+            THỨ TỰ & THỜI GIAN
+          </h2>
         </div>
         <button
           onClick={onResetOrder}
@@ -80,7 +96,6 @@ const CallingOrderList = ({ selectedRoles, onUpdateRoleSettings, onResetOrder })
               >
                 {/* Header Dòng: Tên vai trò và Nút bấm điều khiển */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  
                   {/* Cột Trái: Thứ tự & Tên */}
                   <div className="flex items-center gap-2.5">
                     <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#ecfdf5] text-[#059669] flex items-center justify-center font-mono font-bold text-xs sm:text-sm border border-emerald-200">
@@ -92,19 +107,25 @@ const CallingOrderList = ({ selectedRoles, onUpdateRoleSettings, onResetOrder })
                     <div>
                       <h4 className="font-extrabold text-[#0f172a] text-xs sm:text-base flex items-baseline gap-1.5">
                         <span>{role.name}</span>
-                        <span className="text-[9px] sm:text-xs font-normal text-gray-450">({role.englishName})</span>
+                        {/* <span className="text-[9px] sm:text-xs font-normal text-gray-450">({role.englishName})</span> */}
                       </h4>
                     </div>
                   </div>
 
                   {/* Cột Phải: Timer + Move Buttons (Co giãn/xuống dòng trên mobile) */}
                   <div className="flex items-center justify-between sm:justify-end gap-2.5 sm:gap-4 border-t border-gray-200 pt-2.5 sm:pt-0 sm:border-none">
-                    
                     {/* Bộ chỉnh thời gian chạm (touch-friendly) */}
                     <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
-                      <span className="text-[9px] sm:text-xs text-gray-400 px-1 sm:px-1.5 font-bold">Giây:</span>
+                      <span className="text-[9px] sm:text-xs text-gray-400 px-1 sm:px-1.5 font-bold">
+                        Giây:
+                      </span>
                       <button
-                        onClick={() => handleDurationChange(role.id, role.defaultDuration - 1)}
+                        onClick={() =>
+                          handleDurationChange(
+                            role.id,
+                            role.defaultDuration - 1,
+                          )
+                        }
                         className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800 flex items-center justify-center font-bold text-xs active:scale-95 transition-all"
                       >
                         -
@@ -112,11 +133,18 @@ const CallingOrderList = ({ selectedRoles, onUpdateRoleSettings, onResetOrder })
                       <input
                         type="number"
                         value={role.defaultDuration}
-                        onChange={(e) => handleDurationChange(role.id, e.target.value)}
+                        onChange={(e) =>
+                          handleDurationChange(role.id, e.target.value)
+                        }
                         className="w-8 sm:w-10 bg-transparent text-center text-xs sm:text-sm font-extrabold text-[#059669] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
                       <button
-                        onClick={() => handleDurationChange(role.id, role.defaultDuration + 1)}
+                        onClick={() =>
+                          handleDurationChange(
+                            role.id,
+                            role.defaultDuration + 1,
+                          )
+                        }
                         className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800 flex items-center justify-center font-bold text-xs active:scale-95 transition-all"
                       >
                         +
@@ -139,7 +167,9 @@ const CallingOrderList = ({ selectedRoles, onUpdateRoleSettings, onResetOrder })
                         onClick={() => moveRole(index, "down")}
                         disabled={index === wakingRoles.length - 1}
                         className={`p-1.5 sm:p-2 rounded-xl bg-white border border-gray-250 text-gray-500 hover:bg-gray-55 hover:text-gray-800 shadow-sm transition-all ${
-                          index === wakingRoles.length - 1 ? "opacity-30 cursor-not-allowed" : ""
+                          index === wakingRoles.length - 1
+                            ? "opacity-30 cursor-not-allowed"
+                            : ""
                         }`}
                         title="Di chuyển xuống"
                       >
@@ -147,7 +177,6 @@ const CallingOrderList = ({ selectedRoles, onUpdateRoleSettings, onResetOrder })
                       </button>
                     </div>
                   </div>
-
                 </div>
 
                 {/* Edit Kịch bản lời thoại gọi vai trò */}
@@ -155,20 +184,34 @@ const CallingOrderList = ({ selectedRoles, onUpdateRoleSettings, onResetOrder })
                   {isEditing ? (
                     <div className="space-y-2.5 mt-1">
                       <div>
-                        <label className="text-[8px] sm:text-[9px] text-gray-400 font-extrabold block mb-1 uppercase tracking-wider">KỊCH BẢN THỨC GIẤC</label>
+                        <label className="text-[8px] sm:text-[9px] text-gray-400 font-extrabold block mb-1 uppercase tracking-wider">
+                          KỊCH BẢN THỨC GIẤC
+                        </label>
                         <textarea
                           rows="2"
                           value={tempScripts.wakeScript}
-                          onChange={(e) => setTempScripts(prev => ({ ...prev, wakeScript: e.target.value }))}
+                          onChange={(e) =>
+                            setTempScripts((prev) => ({
+                              ...prev,
+                              wakeScript: e.target.value,
+                            }))
+                          }
                           className="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs text-slate-800 focus:outline-none focus:border-[#10b981] shadow-sm transition-all"
                         />
                       </div>
                       <div>
-                        <label className="text-[8px] sm:text-[9px] text-gray-400 font-extrabold block mb-1 uppercase tracking-wider">KỊCH BẢN ĐI NGỦ</label>
+                        <label className="text-[8px] sm:text-[9px] text-gray-400 font-extrabold block mb-1 uppercase tracking-wider">
+                          KỊCH BẢN ĐI NGỦ
+                        </label>
                         <textarea
                           rows="1"
                           value={tempScripts.sleepScript}
-                          onChange={(e) => setTempScripts(prev => ({ ...prev, sleepScript: e.target.value }))}
+                          onChange={(e) =>
+                            setTempScripts((prev) => ({
+                              ...prev,
+                              sleepScript: e.target.value,
+                            }))
+                          }
                           className="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs text-slate-800 focus:outline-none focus:border-[#10b981] shadow-sm transition-all"
                         />
                       </div>
@@ -190,8 +233,12 @@ const CallingOrderList = ({ selectedRoles, onUpdateRoleSettings, onResetOrder })
                   ) : (
                     <div className="flex items-start justify-between gap-3 mt-0.5">
                       <div className="text-[10px] sm:text-xs text-gray-500 flex-1 min-w-0">
-                        <span className="text-[8px] sm:text-[9px] font-bold text-gray-400 block uppercase tracking-wider mb-0.5">Kịch bản thoại</span>
-                        <p className="italic truncate text-slate-700">"{role.wakeScript}"</p>
+                        <span className="text-[8px] sm:text-[9px] font-bold text-gray-400 block uppercase tracking-wider mb-0.5">
+                          Kịch bản thoại
+                        </span>
+                        <p className="italic truncate text-slate-700">
+                          "{role.wakeScript}"
+                        </p>
                       </div>
                       <button
                         onClick={() => startEditingScript(role)}

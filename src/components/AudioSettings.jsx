@@ -5,25 +5,28 @@ import { speak, stopSpeaking } from "../utils/speech";
 const AudioSettings = ({ audioConfig, setAudioConfig }) => {
   const [voices, setVoices] = useState([]);
   const [isTestSpeaking, setIsTestSpeaking] = useState(false);
+  const [showAllLanguages, setShowAllLanguages] = useState(false);
 
   useEffect(() => {
-    // Tải danh sách giọng nói tiếng Việt
+    // Tải danh sách giọng nói từ hệ thống
     const loadVoices = () => {
       const allVoices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
-      // Lọc tiếng Việt hoặc hiển thị tất cả nếu không thấy tiếng Việt để người dùng tự chọn
       const viVoices = allVoices.filter(v => v.lang.toLowerCase().includes("vi"));
-      if (viVoices.length > 0) {
-        setVoices(viVoices);
-        // Chọn giọng tiếng Việt đầu tiên làm mặc định nếu chưa chọn
-        if (!audioConfig.voiceURI) {
-          setAudioConfig(prev => ({ ...prev, voiceURI: viVoices[0].voiceURI }));
-        }
+      
+      let finalVoices = [];
+
+      // Nếu bật "Hiển thị tất cả ngôn ngữ"
+      if (showAllLanguages) {
+        finalVoices = allVoices;
       } else {
-        // Fallback hiển thị tất cả các giọng nói có sẵn
-        setVoices(allVoices);
-        if (!audioConfig.voiceURI && allVoices.length > 0) {
-          setAudioConfig(prev => ({ ...prev, voiceURI: allVoices[0].voiceURI }));
-        }
+        finalVoices = viVoices;
+      }
+
+      setVoices(finalVoices);
+
+      // Nếu chưa chọn giọng đọc
+      if (!audioConfig.voiceURI && finalVoices.length > 0) {
+        setAudioConfig(prev => ({ ...prev, voiceURI: finalVoices[0].voiceURI }));
       }
     };
 
@@ -31,7 +34,7 @@ const AudioSettings = ({ audioConfig, setAudioConfig }) => {
     if (typeof window !== "undefined" && window.speechSynthesis) {
       window.speechSynthesis.onvoiceschanged = loadVoices;
     }
-  }, [audioConfig.voiceURI, setAudioConfig]);
+  }, [audioConfig.voiceURI, setAudioConfig, showAllLanguages]);
 
   const handleTestVoice = () => {
     if (isTestSpeaking) {
@@ -63,14 +66,21 @@ const AudioSettings = ({ audioConfig, setAudioConfig }) => {
       <div className="space-y-4">
         {/* Chọn giọng đọc */}
         <div className="flex flex-col gap-2">
-          <label className="text-[10px] sm:text-xs font-bold text-gray-400 flex items-center justify-between uppercase tracking-wider">
-            <span>Giọng đọc (TTS Voice)</span>
-            {voices.length === 0 && (
-              <span className="text-[9px] text-amber-600 flex items-center gap-1 font-bold">
-                <Info className="w-3 h-3" /> Không thấy tiếng Việt mặc định
-              </span>
-            )}
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider">
+              Giọng đọc (TTS Voice)
+            </label>
+            <label className="flex items-center gap-1.5 cursor-pointer text-[10px] text-gray-500 font-bold select-none">
+              <input
+                type="checkbox"
+                checked={showAllLanguages}
+                onChange={(e) => setShowAllLanguages(e.target.checked)}
+                className="rounded border-gray-300 text-[#10b981] focus:ring-[#10b981] w-3 h-3 cursor-pointer"
+              />
+              Tất cả ngôn ngữ
+            </label>
+          </div>
+          
           <select
             value={audioConfig.voiceURI || ""}
             onChange={(e) => setAudioConfig(prev => ({ ...prev, voiceURI: e.target.value }))}

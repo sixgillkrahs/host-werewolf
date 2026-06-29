@@ -14,38 +14,27 @@ const STORAGE_AUDIO_KEY = "masoi1dem_audio";
 const App = () => {
   // Game Phase: "setup", "night", "daylight"
   const [gamePhase, setGamePhase] = useState("setup");
-
-  // Danh sách các vai trò
+  
+  // Danh sách các vai trò (Đã tinh giản)
   const [roles, setRoles] = useState(() => {
     const saved = localStorage.getItem(STORAGE_ROLES_KEY);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        return defaultRoles.map((role) => {
-          const savedRole = parsed.find((p) => p.id === role.id);
+        return defaultRoles.map(role => {
+          const savedRole = parsed.find(p => p.id === role.id);
           let selected = false;
           if (savedRole) {
-            selected =
-              savedRole.selected !== undefined
-                ? savedRole.selected
-                : savedRole.count > 0;
+            selected = savedRole.selected !== undefined ? savedRole.selected : false;
           } else {
             const defaultSelection = [
-              "werewolf1",
-              "werewolf2",
-              "seer",
-              "robber",
-              "troublemaker",
-              "drunk",
-              "insomniac",
-              "villager1",
-              "villager2",
+              "werewolf", "seer", "robber", "troublemaker", "drunk", "insomniac", "villager"
             ];
             selected = defaultSelection.includes(role.id);
           }
           return {
             ...role,
-            selected,
+            selected
           };
         });
       } catch (e) {
@@ -53,19 +42,11 @@ const App = () => {
       }
     }
     const defaultSelection = [
-      "werewolf1",
-      "werewolf2",
-      "seer",
-      "robber",
-      "troublemaker",
-      "drunk",
-      "insomniac",
-      "villager1",
-      "villager2",
+      "werewolf", "seer", "robber", "troublemaker", "drunk", "insomniac", "villager"
     ];
-    return defaultRoles.map((role) => ({
+    return defaultRoles.map(role => ({
       ...role,
-      selected: defaultSelection.includes(role.id),
+      selected: defaultSelection.includes(role.id)
     }));
   });
 
@@ -83,7 +64,7 @@ const App = () => {
       voiceURI: "",
       rate: 0.95,
       pitch: 0.9,
-      volume: 1.0,
+      volume: 1.0
     };
   });
 
@@ -98,114 +79,47 @@ const App = () => {
 
   // Bật/tắt vai trò
   const handleToggleRole = (roleId) => {
-    setRoles((prev) =>
-      prev.map((r) => (r.id === roleId ? { ...r, selected: !r.selected } : r)),
+    setRoles(prev =>
+      prev.map(r => (r.id === roleId ? { ...r, selected: !r.selected } : r))
     );
   };
 
   // Cập nhật cấu hình vai trò
   const handleUpdateRoleSettings = (roleId, newSettings) => {
-    const role = roles.find((r) => r.id === roleId);
-    const groupId = role?.roleGroupId || roleId;
-
-    setRoles((prev) =>
-      prev.map((r) => {
-        const rGroupId = r.roleGroupId || r.id;
-        if (rGroupId === groupId) {
-          return { ...r, ...newSettings };
-        }
-        return r;
-      }),
+    setRoles(prev =>
+      prev.map(r => (r.id === roleId ? { ...r, ...newSettings } : r))
     );
   };
 
-  // Áp dụng cấu hình gợi ý nhanh (Player Presets)
+  // Áp dụng cấu hình gợi ý nhanh (Player Presets) - Tối ưu chọn theo bộ vai trò khuyên dùng
   const applyPreset = (count) => {
     let presetList = [];
     if (count === 3) {
-      presetList = [
-        "werewolf1",
-        "werewolf2",
-        "seer",
-        "robber",
-        "troublemaker",
-        "villager1",
-      ];
+      // Nhóm nhỏ (3-4 người): Đầy đủ các vai trò cơ bản nhất
+      presetList = ["werewolf", "seer", "robber", "troublemaker", "villager"];
     } else if (count === 5) {
-      presetList = [
-        "werewolf1",
-        "werewolf2",
-        "minion",
-        "seer",
-        "robber",
-        "troublemaker",
-        "drunk",
-        "insomniac",
-        "villager1",
-      ];
+      // Nhóm vừa (5-6 người): Thêm Kẻ Phản Bội, Chàng Say và Kẻ Chán Đời tăng kịch tính
+      presetList = ["werewolf", "minion", "seer", "robber", "troublemaker", "drunk", "villager", "tanner"];
     } else if (count === 7) {
-      presetList = [
-        "werewolf1",
-        "werewolf2",
-        "minion",
-        "seer",
-        "robber",
-        "troublemaker",
-        "drunk",
-        "insomniac",
-        "mason1",
-        "mason2",
-        "villager1",
-      ];
+      // Nhóm lớn (7-8 người): Bổ sung toàn bộ các vai trò (Sói, Phản Bội, Thợ Xây, Tiên Tri, Trộm, Phá Rối, Say, Mất Ngủ, Dân Thường, Thợ Săn, Chán Đời)
+      presetList = ["werewolf", "minion", "mason", "seer", "robber", "troublemaker", "drunk", "insomniac", "villager", "hunter", "tanner"];
     }
-
-    setRoles((prev) =>
-      prev.map((r) => ({
+    
+    setRoles(prev =>
+      prev.map(r => ({
         ...r,
-        selected: presetList.includes(r.id),
-      })),
+        selected: presetList.includes(r.id)
+      }))
     );
   };
 
   // Kiểm tra preset nào đang khớp với cấu hình hiện tại
   const getActivePreset = () => {
-    const activeSelectedIds = roles
-      .filter((r) => r.selected)
-      .map((r) => r.id)
-      .sort();
-
-    const preset3 = [
-      "werewolf1",
-      "werewolf2",
-      "seer",
-      "robber",
-      "troublemaker",
-      "villager1",
-    ].sort();
-    const preset5 = [
-      "werewolf1",
-      "werewolf2",
-      "minion",
-      "seer",
-      "robber",
-      "troublemaker",
-      "drunk",
-      "insomniac",
-      "villager1",
-    ].sort();
-    const preset7 = [
-      "werewolf1",
-      "werewolf2",
-      "minion",
-      "seer",
-      "robber",
-      "troublemaker",
-      "drunk",
-      "insomniac",
-      "mason1",
-      "mason2",
-      "villager1",
-    ].sort();
+    const activeSelectedIds = roles.filter(r => r.selected).map(r => r.id).sort();
+    
+    const preset3 = ["werewolf", "seer", "robber", "troublemaker", "villager"].sort();
+    const preset5 = ["werewolf", "minion", "seer", "robber", "troublemaker", "drunk", "villager", "tanner"].sort();
+    const preset7 = ["werewolf", "minion", "mason", "seer", "robber", "troublemaker", "drunk", "insomniac", "villager", "hunter", "tanner"].sort();
 
     if (JSON.stringify(activeSelectedIds) === JSON.stringify(preset3)) return 3;
     if (JSON.stringify(activeSelectedIds) === JSON.stringify(preset5)) return 5;
@@ -215,68 +129,40 @@ const App = () => {
 
   // Khôi phục mặc định
   const handleResetOrder = () => {
-    setRoles((prev) =>
-      prev.map((r) => {
-        const original = defaultRoles.find((orig) => orig.id === r.id);
+    setRoles(prev =>
+      prev.map(r => {
+        const original = defaultRoles.find(orig => orig.id === r.id);
         const defaultSelection = [
-          "werewolf1",
-          "werewolf2",
-          "seer",
-          "robber",
-          "troublemaker",
-          "drunk",
-          "insomniac",
-          "villager1",
-          "villager2",
+          "werewolf", "seer", "robber", "troublemaker", "drunk", "insomniac", "villager"
         ];
         const defaultSelected = defaultSelection.includes(r.id);
         if (original) {
           return {
             ...original,
-            selected: defaultSelected,
+            selected: defaultSelected
           };
         }
         return r;
-      }),
+      })
     );
   };
 
-  const getWakingRolesGroup = (selectedList) => {
-    const list = [];
-    const seen = new Set();
+  // Đếm số vai trò được chọn
+  const selectedCount = roles.filter(r => r.selected).length;
 
-    selectedList.forEach((r) => {
-      const gid = r.roleGroupId || r.id;
-      if (!seen.has(gid)) {
-        seen.add(gid);
-        const baseName = r.name.replace(/\s\d+$/, "");
-        list.push({
-          ...r,
-          name: baseName,
-        });
-      }
-    });
-    return list;
-  };
+  // Danh sách các vai trò thức giấc ban đêm
+  const selectedWakingRolesList = roles.filter(r => r.selected && r.wakesUp);
+  const selectedWakingRolesCount = selectedWakingRolesList.length;
 
-  const selectedCount = roles.filter((r) => r.selected).length;
-  const estimatedPlayers = Math.max(0, selectedCount - 3);
-
-  const selectedWakingRolesList = getWakingRolesGroup(
-    roles.filter((r) => r.selected),
-  );
-  const selectedWakingRolesCount = selectedWakingRolesList.filter(
-    (r) => r.wakesUp,
-  ).length;
-
-  const werewolfTeam = roles.filter((r) => r.team === "werewolf");
-  const villagerTeam = roles.filter((r) => r.team === "villager");
-  const tannerTeam = roles.filter((r) => r.team === "tanner");
+  const werewolfTeam = roles.filter(r => r.team === "werewolf");
+  const villagerTeam = roles.filter(r => r.team === "villager");
+  const tannerTeam = roles.filter(r => r.team === "tanner");
 
   const activePreset = getActivePreset();
 
   return (
     <div className="min-h-screen flex flex-col justify-between">
+      
       {/* Header chính */}
       <header className="border-b border-gray-200 bg-white sticky top-0 z-40 px-6 py-4">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -285,34 +171,16 @@ const App = () => {
               <ShieldAlert className="w-6 h-6 animate-pulse" />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-black tracking-wider text-gray-900">
-                MA SÓI MỘT ĐÊM
-              </h1>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center sm:text-left">
-                Trợ Lý Quản Trò Chuyên Nghiệp
-              </p>
+              <h1 className="text-xl md:text-2xl font-black tracking-wider text-gray-900">MA SÓI MỘT ĐÊM</h1>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center sm:text-left">Trợ Lý Quản Trò Chuyên Nghiệp</p>
             </div>
           </div>
 
           {gamePhase === "setup" && (
             <div className="flex items-center gap-4 bg-gray-50 border border-gray-200 rounded-2xl py-2 px-4 shadow-sm">
-              <div className="text-center px-3 border-r border-gray-200">
-                <span className="block font-mono text-lg font-bold text-[#10b981]">
-                  {selectedCount}
-                </span>
-                <span className="text-[9px] font-bold text-gray-400 uppercase">
-                  {" "}
-                  Tổng Lá Bài
-                </span>
-              </div>
-              <div className="text-center px-3">
-                <span className="block font-mono text-lg font-bold text-gray-900">
-                  {estimatedPlayers > 0 ? estimatedPlayers : 0}
-                </span>
-                <span className="text-[9px] font-bold text-gray-400 uppercase">
-                  {" "}
-                  Số Người Chơi
-                </span>
+              <div className="text-center px-4">
+                <span className="block font-mono text-lg font-bold text-[#10b981]">{selectedCount}</span>
+                <span className="text-[9px] font-bold text-gray-400 uppercase">Vai Trò Đã Chọn</span>
               </div>
             </div>
           )}
@@ -323,78 +191,72 @@ const App = () => {
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6">
         {gamePhase === "setup" && (
           <div className="space-y-6">
+            
             {/* Thanh hướng dẫn */}
             <div className="glass-panel p-4 rounded-2xl border border-gray-200 flex items-start gap-3 bg-opacity-40">
               <Info className="w-5 h-5 text-[#10b981] flex-shrink-0 mt-0.5" />
               <div className="text-xs md:text-sm text-gray-555">
-                <span className="font-bold text-gray-900 block mb-0.5">
-                  Quy tắc thiết lập ván chơi:
-                </span>
-                Mỗi ván game Ma Sói Một Đêm sẽ có tổng số lá bài bằng{" "}
-                <strong className="text-gray-900">
-                  Số người chơi + 3 lá bài dư đặt ở giữa bàn
-                </strong>
-                . Hãy chọn các vai trò tham gia dưới đây để ứng dụng tự động sắp
-                xếp kịch bản gọi ban đêm phù hợp nhất.
+                <span className="font-bold text-gray-900 block mb-0.5">Quy tắc thiết lập ván chơi:</span>
+                Hãy gạt chọn các vai trò bạn sử dụng trong ván chơi. Ứng dụng sẽ tự động sắp xếp kịch bản và thời lượng gọi ban đêm tương ứng. Bạn chỉ cần bật điện thoại phát tiếng để hỗ trợ quản trò ban đêm!
               </div>
             </div>
 
-            {/* Thanh chọn nhanh Preset số người chơi (UX Cải tiến vượt trội) */}
+            {/* Thanh chọn nhanh Preset nhóm người chơi */}
             <div className="glass-panel p-4 rounded-2xl border border-gray-200 flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-2.5 text-xs sm:text-sm font-bold text-gray-700">
                 <Users className="w-5 h-5 text-[#10b981]" />
-                <span>CHỌN BÀN CHƠI KHUYẾN NGHỊ:</span>
+                <span>BỘ VAI TRÒ KHUYÊN DÙNG:</span>
               </div>
               <div className="flex flex-wrap gap-2.5 justify-center">
                 <button
                   onClick={() => applyPreset(3)}
                   className={`preset-btn border ${
-                    activePreset === 3
-                      ? "border-[#10b981] bg-[#e6fbf3] text-[#059669] shadow-[0_2px_8px_rgba(16,185,129,0.15)]"
+                    activePreset === 3 
+                      ? "border-[#10b981] bg-[#e6fbf3] text-[#059669] shadow-[0_2px_8px_rgba(16,185,129,0.15)]" 
                       : "bg-white"
                   }`}
                 >
-                  3-4 Người chơi (6 lá)
+                  Nhóm 3-4 Người chơi
                 </button>
                 <button
                   onClick={() => applyPreset(5)}
                   className={`preset-btn border ${
-                    activePreset === 5
-                      ? "border-[#10b981] bg-[#e6fbf3] text-[#059669] shadow-[0_2px_8px_rgba(16,185,129,0.15)]"
+                    activePreset === 5 
+                      ? "border-[#10b981] bg-[#e6fbf3] text-[#059669] shadow-[0_2px_8px_rgba(16,185,129,0.15)]" 
                       : "bg-white"
                   }`}
                 >
-                  5-6 Người chơi (9 lá)
+                  Nhóm 5-6 Người chơi
                 </button>
                 <button
                   onClick={() => applyPreset(7)}
                   className={`preset-btn border ${
-                    activePreset === 7
-                      ? "border-[#10b981] bg-[#e6fbf3] text-[#059669] shadow-[0_2px_8px_rgba(16,185,129,0.15)]"
+                    activePreset === 7 
+                      ? "border-[#10b981] bg-[#e6fbf3] text-[#059669] shadow-[0_2px_8px_rgba(16,185,129,0.15)]" 
                       : "bg-white"
                   }`}
                 >
-                  7-8 Người chơi (11 lá)
+                  Nhóm 7-8 Người chơi
                 </button>
               </div>
             </div>
 
             {/* Layout cột đôi */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              
               {/* Cột trái: Danh sách chọn vai trò phân loại theo Phe */}
               <div className="lg:col-span-7 space-y-6">
+                
                 {/* 1. Phe Ma Sói */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 border-b border-red-200 pb-2">
                     <span className="w-1.5 h-4.5 bg-[#ef4444] rounded-full shadow-sm" />
                     <h3 className="text-xs sm:text-sm font-extrabold tracking-wider text-[#ef4444] uppercase">
-                      Phe Ma Sói (
-                      {werewolfTeam.filter((r) => r.selected).length} /{" "}
-                      {werewolfTeam.length} lá)
+                      Phe Ma Sói ({werewolfTeam.filter(r => r.selected).length} / {werewolfTeam.length} vai trò)
                     </h3>
                   </div>
                   <div className="layout-grid-roles">
-                    {werewolfTeam.map((role) => (
+                    {werewolfTeam.map(role => (
                       <RoleCard
                         key={role.id}
                         role={role}
@@ -410,13 +272,11 @@ const App = () => {
                   <div className="flex items-center gap-2 border-b border-green-200 pb-2">
                     <span className="w-1.5 h-4.5 bg-[#059669] rounded-full shadow-sm" />
                     <h3 className="text-xs sm:text-sm font-extrabold tracking-wider text-[#059669] uppercase">
-                      Phe Dân Làng (
-                      {villagerTeam.filter((r) => r.selected).length} /{" "}
-                      {villagerTeam.length} lá)
+                      Phe Dân Làng ({villagerTeam.filter(r => r.selected).length} / {villagerTeam.length} vai trò)
                     </h3>
                   </div>
                   <div className="layout-grid-roles">
-                    {villagerTeam.map((role) => (
+                    {villagerTeam.map(role => (
                       <RoleCard
                         key={role.id}
                         role={role}
@@ -432,12 +292,11 @@ const App = () => {
                   <div className="flex items-center gap-2 border-b border-amber-200 pb-2">
                     <span className="w-1.5 h-4.5 bg-[#d97706] rounded-full shadow-sm" />
                     <h3 className="text-xs sm:text-sm font-extrabold tracking-wider text-[#d97706] uppercase">
-                      Phe Độc Lập ({tannerTeam.filter((r) => r.selected).length}{" "}
-                      / {tannerTeam.length} lá)
+                      Phe Độc Lập ({tannerTeam.filter(r => r.selected).length} / {tannerTeam.length} vai trò)
                     </h3>
                   </div>
                   <div className="layout-grid-roles">
-                    {tannerTeam.map((role) => (
+                    {tannerTeam.map(role => (
                       <RoleCard
                         key={role.id}
                         role={role}
@@ -447,10 +306,12 @@ const App = () => {
                     ))}
                   </div>
                 </div>
+
               </div>
 
               {/* Cột phải: Thứ tự gọi + Cấu hình âm thanh */}
               <div className="lg:col-span-5 space-y-6">
+                
                 {/* Cấu hình giọng nói */}
                 <AudioSettings
                   audioConfig={audioConfig}
@@ -463,6 +324,7 @@ const App = () => {
                   onUpdateRoleSettings={handleUpdateRoleSettings}
                   onResetOrder={handleResetOrder}
                 />
+
               </div>
             </div>
 
@@ -481,11 +343,12 @@ const App = () => {
                 }`}
               >
                 <Play className="w-5 h-5 fill-current" />
-                {selectedWakingRolesCount === 0
-                  ? "Hãy chọn ít nhất 1 vai trò thức giấc đêm"
+                {selectedWakingRolesCount === 0 
+                  ? "Hãy chọn ít nhất 1 vai trò thức giấc đêm" 
                   : "BẮT ĐẦU VÁN ĐẤU (PHÂN ĐÊM)"}
               </button>
             </div>
+
           </div>
         )}
 
@@ -501,16 +364,17 @@ const App = () => {
 
         {/* Thảo luận ban ngày */}
         {gamePhase === "daylight" && (
-          <DaylightPhase onBackToSetup={() => setGamePhase("setup")} />
+          <DaylightPhase
+            onBackToSetup={() => setGamePhase("setup")}
+          />
         )}
       </main>
 
       {/* Footer */}
       <footer className="border-t border-gray-200 py-4 text-center text-xs text-gray-400 bg-white">
-        <p>
-          © 2026 Werewolf Host Assistant. Phát triển cho game Ma Sói Một Đêm.
-        </p>
+        <p>© 2026 Werewolf Host Assistant. Phát triển cho game Ma Sói Một Đêm.</p>
       </footer>
+
     </div>
   );
 };

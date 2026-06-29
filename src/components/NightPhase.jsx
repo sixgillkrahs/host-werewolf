@@ -299,6 +299,14 @@ const NightPhase = ({ selectedRoles, audioConfig, onExit, onFinished }) => {
 
   const progress = getProgressDetails();
 
+  const handleExit = () => {
+    setPhaseState("exited");
+    stopSpeaking();
+    clearAllTimeouts();
+    if (timerRef.current) clearInterval(timerRef.current);
+    onExit();
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-white flex flex-col justify-between p-4 sm:p-6 overflow-hidden select-none">
       {/* Background màu trắng tinh khiết */}
@@ -308,12 +316,12 @@ const NightPhase = ({ selectedRoles, audioConfig, onExit, onFinished }) => {
       <div className="relative z-10 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-[#10b981] animate-pulse" />
-          <span className="text-[10px] sm:text-xs uppercase font-bold tracking-widest text-gray-500">
+          <span className="text-[10px] sm:text-xs uppercase font-bold tracking-widest text-gray-550">
             Giai đoạn ban đêm
           </span>
         </div>
         <button
-          onClick={onExit}
+          onClick={handleExit}
           className="bg-red-100 hover:bg-red-200 text-[#ef4444] border border-red-200 rounded-full p-2 hover:shadow-[0_2px_8px_rgba(239,68,68,0.2)] transition-all"
         >
           <X className="w-4.5 h-4.5 sm:w-5 sm:h-5" />

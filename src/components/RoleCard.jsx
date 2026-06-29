@@ -33,14 +33,18 @@ const RoleCard = ({ role, isSelected, onToggle }) => {
             <IconComponent className="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5" />
           </div>
           <span className="text-[8px] sm:text-[9px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded-full border border-gray-200 role-badge text-gray-500 bg-gray-50">
-            {role.team === "werewolf" ? "Phe Sói" : role.team === "tanner" ? "Phe Chán Đời" : "Phe Dân Làng"}
+            {role.team === "werewolf"
+              ? "Phe Sói"
+              : role.team === "tanner"
+                ? "Phe Chán Đời"
+                : "Phe Dân Làng"}
           </span>
         </div>
 
         {/* Thông tin vai trò */}
-        <h3 className="text-sm sm:text-base font-extrabold tracking-wide mb-1 flex flex-wrap items-baseline gap-1.5 role-title text-[#1e293b]">
+        <h3 className="text-sm sm:text-base font-extrabold tracking-wide mb-1 flex flex-col items-start role-title text-[#1e293b]">
           <span>{role.name}</span>
-          <span className="text-[9px] sm:text-xs font-normal font-mono text-gray-400 block sm:inline">({role.englishName})</span>
+          {/* <span className="text-[9px] sm:text-xs font-normal font-mono text-gray-400">({role.englishName})</span> */}
         </h3>
         <p className="text-[10px] sm:text-xs leading-relaxed mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3 role-desc text-[#64748b]">
           {role.description}
