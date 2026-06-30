@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Play, Pause, RefreshCw, Sun, AlertTriangle, ArrowLeft } from "lucide-react";
+import { Play, Pause, RefreshCw, Sun, AlertTriangle, ArrowLeft, SkipForward } from "lucide-react";
 import { playGong, playTick } from "../utils/speech";
 
-const DaylightPhase = ({ onBackToSetup }) => {
+const DaylightPhase = ({ onBackToSetup, onStartNewGame }) => {
   const [totalSeconds, setTotalSeconds] = useState(300); // 5 phút mặc định
   const [timeLeft, setTimeLeft] = useState(300);
   const [isActive, setIsActive] = useState(true); // Tự động chạy khi bắt đầu ngày
@@ -41,6 +41,12 @@ const DaylightPhase = ({ onBackToSetup }) => {
   const handleReset = () => {
     setIsActive(false);
     setTimeLeft(totalSeconds);
+  };
+
+  const handleSkip = () => {
+    setIsActive(false);
+    setTimeLeft(0);
+    playGong();
   };
 
   const handleTimePreset = (minutes) => {
@@ -131,17 +137,28 @@ const DaylightPhase = ({ onBackToSetup }) => {
       {/* Điều khiển */}
       <div className="w-full max-w-md flex flex-col items-center gap-4 sm:gap-6">
         {timeLeft === 0 && (
-          <div className="bg-red-50 border border-red-200 p-3 rounded-xl flex items-center gap-2 animate-bounce shadow-sm">
-            <AlertTriangle className="w-4 h-4 text-[#ef4444] flex-shrink-0" />
-            <span className="text-[10px] sm:text-xs font-bold text-red-700">Hết giờ! Hãy bắt đầu biểu quyết treo cổ sói.</span>
-          </div>
+          <>
+            <div className="bg-red-50 border border-red-200 p-3 rounded-xl flex items-center gap-2 animate-bounce shadow-sm">
+              <AlertTriangle className="w-4 h-4 text-[#ef4444] flex-shrink-0" />
+              <span className="text-[10px] sm:text-xs font-bold text-red-700">Hết giờ! Hãy bắt đầu biểu quyết treo cổ sói.</span>
+            </div>
+            
+            <button
+              onClick={onStartNewGame}
+              className="w-full py-3.5 px-6 rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 bg-gradient-to-r from-[#10b981] to-[#059669] text-white hover:shadow-[0_6px_22px_rgba(16,185,129,0.22)] hover:scale-[1.01] transform active:scale-[0.99] transition-all duration-300 border-none cursor-pointer"
+            >
+              <RefreshCw className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
+              BẮT ĐẦU VÁN MỚI
+            </button>
+          </>
         )}
 
         <div className="flex items-center gap-4 sm:gap-5">
           {/* Nút Đặt lại */}
           <button
             onClick={handleReset}
-            className="p-3 sm:p-4 rounded-full bg-white border border-gray-250 text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-all shadow-sm"
+            className="p-3 sm:p-4 rounded-full bg-white border border-gray-250 text-gray-400 hover:text-gray-700 hover:bg-gray-55 transition-all shadow-sm cursor-pointer"
+            title="Đặt lại thời gian"
           >
             <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
@@ -149,7 +166,7 @@ const DaylightPhase = ({ onBackToSetup }) => {
           {/* Nút Bắt đầu / Tạm dừng */}
           <button
             onClick={handleToggle}
-            className={`py-3 sm:py-4 px-8 sm:px-10 rounded-full font-bold flex items-center gap-2 text-sm sm:text-base transition-all ${
+            className={`py-3 sm:py-4 px-8 sm:px-10 rounded-full font-bold flex items-center gap-2 text-sm sm:text-base transition-all cursor-pointer ${
               isActive
                 ? "bg-white text-[#10b981] border border-[#10b981] hover:bg-gray-50 shadow-sm"
                 : "bg-[#10b981] text-white shadow-[0_4px_12px_rgba(16,185,129,0.2)] hover:bg-opacity-95"
@@ -165,6 +182,17 @@ const DaylightPhase = ({ onBackToSetup }) => {
               </>
             )}
           </button>
+
+          {/* Nút Tua nhanh (Skip) */}
+          {timeLeft > 0 && (
+            <button
+              onClick={handleSkip}
+              className="p-3 sm:p-4 rounded-full bg-white border border-gray-250 text-gray-400 hover:text-gray-700 hover:bg-gray-55 transition-all shadow-sm cursor-pointer"
+              title="Kết thúc thảo luận sớm"
+            >
+              <SkipForward className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
+          )}
         </div>
       </div>
     </div>

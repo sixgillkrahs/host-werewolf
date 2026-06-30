@@ -366,6 +366,7 @@ const App = () => {
         {gamePhase === "daylight" && (
           <DaylightPhase
             onBackToSetup={() => setGamePhase("setup")}
+            onStartNewGame={() => setGamePhase("night")}
           />
         )}
       </main>
