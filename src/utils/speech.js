@@ -249,102 +249,9 @@ export const speak = (text, options = {}, onStart = null, onEnd = null) => {
   // Hủy âm thanh đang phát trước đó (cả offline và online)
   stopSpeaking();
 
-  const { voiceURI, viettelToken, rate = 1.0, pitch = 1.0, volume = 1.0 } = options;
+  const { voiceURI, rate = 1.0, pitch = 1.0, volume = 1.0 } = options;
 
-  // 1. Sử dụng dịch vụ Viettel AI TTS Online
-  if (voiceURI && voiceURI.startsWith("viettel-")) {
-    const viettelVoiceCode = voiceURI.replace("viettel-", "");
-    
-    if (!viettelToken) {
-      console.warn("Chưa cấu hình Viettel AI Token, chuyển sang Google Online.");
-      speak(text, { ...options, voiceURI: "google-translate-online" }, onStart, onEnd);
-      return;
-    }
-
-    try {
-      const url = "https://viettelai.vn/tts/speech_synthesis";
-      let viettelSpeed = 1.0;
-      if (rate) {
-        viettelSpeed = Math.min(Math.max(rate, 0.8), 1.2);
-      }
-
-      fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "accept": "*/*"
-        },
-        body: JSON.stringify({
-          token: viettelToken,
-          text: text,
-          voice: viettelVoiceCode,
-          speed: viettelSpeed,
-          tts_return_option: 3
-        })
-      })
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-          const errData = await response.json();
-          throw new Error(errData.vi_message || errData.en_message || "Lỗi API Viettel AI");
-        }
-        
-        return response.blob();
-      })
-      .then((blob) => {
-        const audioUrl = URL.createObjectURL(blob);
-        currentOnlineAudio = new Audio(audioUrl);
-        currentOnlineAudio.volume = volume;
-
-        if (onStart) {
-          currentOnlineAudio.onplay = onStart;
-        }
-
-        let finished = false;
-        let failsafeTimer = null;
-
-        const handleAudioEnd = () => {
-          if (finished) return;
-          finished = true;
-          if (failsafeTimer) clearTimeout(failsafeTimer);
-          currentOnlineAudio = null;
-          URL.revokeObjectURL(audioUrl);
-          if (onEnd) onEnd();
-        };
-
-        currentOnlineAudio.onended = handleAudioEnd;
-        currentOnlineAudio.onerror = (e) => {
-          console.error("Lỗi phát file âm thanh Viettel AI:", e);
-          handleAudioEnd();
-        };
-
-        failsafeTimer = setTimeout(() => {
-          console.warn("Failsafe Viettel AI kích hoạt do hết thời gian chờ.");
-          handleAudioEnd();
-        }, 25000);
-
-        currentOnlineAudio.play().catch(err => {
-          console.error("Trình duyệt chặn tự động phát audio Viettel, dùng Google online:", err);
-          handleAudioEnd();
-        });
-      })
-      .catch((err) => {
-        console.error("Lỗi gọi API Viettel AI:", err.message);
-        speak(text, { ...options, voiceURI: "google-translate-online" }, onStart, onEnd);
-      });
-      return;
-    } catch (e) {
-      console.error("Lỗi khởi tạo Viettel AI TTS:", e);
-      speak(text, { ...options, voiceURI: "google-translate-online" }, onStart, onEnd);
-      return;
-    }
-  }
-
-  // 2. Sử dụng dịch vụ Google Translate TTS Online miễn phí
+  // 1. Sử dụng dịch vụ Google Translate TTS Online miễn phí
   if (voiceURI === "google-translate-online") {
     try {
       const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=${encodeURIComponent(text)}`;
@@ -423,5 +330,165 @@ export const resumeSpeaking = () => {
   }
   if (currentOnlineAudio) {
     currentOnlineAudio.play().catch(e => console.error("Lỗi tiếp tục phát audio online:", e));
+  }
+};
+
+// 3. Âm thanh nền ban đêm (Night Ambient Music) tự tổng hợp bằng Web Audio API
+let ambientSource = null;
+let ambientGain = null;
+
+export const startNightAmbient = () => {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    if (ctx.state === "suspended") ctx.resume();
+
+    // Dừng âm thanh nền cũ nếu đang chạy
+    stopNightAmbient();
+
+    // A. TẠO TIẾNG GIÓ HÚ (White Noise + Bandpass Filter + LFO)
+    const bufferSize = ctx.sampleRate * 2; // 2 giây buffer
+    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      output[i] = Math.random() * 2 - 1;
+    }
+
+    const noiseNode = ctx.createBufferSource();
+    noiseNode.buffer = noiseBuffer;
+    noiseNode.loop = true;
+
+    // Bộ lọc gió (Filter) để tạo tiếng rầm rì ấm áp
+    const windFilter = ctx.createBiquadFilter();
+    windFilter.type = "lowpass";
+    windFilter.frequency.setValueAtTime(280, ctx.currentTime);
+    windFilter.Q.setValueAtTime(3.0, ctx.currentTime); // Hơi vang nhẹ tạo cảm giác gió rít
+
+    // LFO điều chỉnh tần số lọc để tạo hiệu ứng gió thổi mạnh yếu ngẫu nhiên
+    const windFilterLfo = ctx.createOscillator();
+    windFilterLfo.type = "sine";
+    windFilterLfo.frequency.setValueAtTime(0.08, ctx.currentTime); // 1 chu kỳ ~ 12 giây
+    const windFilterLfoGain = ctx.createGain();
+    windFilterLfoGain.gain.setValueAtTime(120, ctx.currentTime);
+
+    windFilterLfo.connect(windFilterLfoGain);
+    windFilterLfoGain.connect(windFilter.frequency);
+
+    // Điều khiển âm lượng gió bằng một LFO khác
+    const windGain = ctx.createGain();
+    windGain.gain.setValueAtTime(0.03, ctx.currentTime);
+
+    const windGainLfo = ctx.createOscillator();
+    windGainLfo.type = "sine";
+    windGainLfo.frequency.setValueAtTime(0.15, ctx.currentTime); // Dao động âm lượng nhanh hơn một chút
+    const windGainLfoGain = ctx.createGain();
+    windGainLfoGain.gain.setValueAtTime(0.015, ctx.currentTime);
+
+    windGainLfo.connect(windGainLfoGain);
+    windGainLfoGain.connect(windGain.gain);
+
+    noiseNode.connect(windFilter);
+    windFilter.connect(windGain);
+
+    // B. TẠO TIẾNG RUNG MA QUÁI (Detuned Low Oscillators + Lowpass Filter)
+    const droneOsc1 = ctx.createOscillator();
+    droneOsc1.type = "sawtooth";
+    droneOsc1.frequency.setValueAtTime(55.0, ctx.currentTime); // Nốt A1 (~55Hz) tạo độ trầm
+
+    const droneOsc2 = ctx.createOscillator();
+    droneOsc2.type = "triangle";
+    droneOsc2.frequency.setValueAtTime(55.6, ctx.currentTime); // Lệch tần số một chút để tạo chorus tự nhiên
+
+    const droneFilter = ctx.createBiquadFilter();
+    droneFilter.type = "lowpass";
+    droneFilter.frequency.setValueAtTime(100, ctx.currentTime); // Chỉ giữ dải trầm cực sâu
+
+    const droneGain = ctx.createGain();
+    droneGain.gain.setValueAtTime(0.06, ctx.currentTime);
+
+    droneOsc1.connect(droneFilter);
+    droneOsc2.connect(droneFilter);
+    droneFilter.connect(droneGain);
+
+    // C. KẾT NỐI VÀO MASTER GAIN
+    ambientGain = ctx.createGain();
+    ambientGain.gain.setValueAtTime(0.0, ctx.currentTime);
+    // Tăng âm lượng từ từ (Fade in) trong 3 giây để chuyển cảnh mượt mà
+    ambientGain.gain.linearRampToValueAtTime(0.7, ctx.currentTime + 3.0);
+
+    windGain.connect(ambientGain);
+    droneGain.connect(ambientGain);
+    ambientGain.connect(ctx.destination);
+
+    // Khởi động các nguồn phát âm thanh
+    noiseNode.start(0);
+    windFilterLfo.start(0);
+    windGainLfo.start(0);
+    droneOsc1.start(0);
+    droneOsc2.start(0);
+
+    // Lưu trữ các nodes để tắt sau này
+    ambientSource = {
+      noiseNode,
+      windFilterLfo,
+      windGainLfo,
+      droneOsc1,
+      droneOsc2
+    };
+  } catch (e) {
+    console.error("Lỗi khi phát âm thanh nền ban đêm:", e);
+  }
+};
+
+export const stopNightAmbient = () => {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx || !ambientGain) return;
+
+    const time = ctx.currentTime;
+    // Giảm âm lượng từ từ (Fade out) trong 1.8 giây
+    ambientGain.gain.setValueAtTime(ambientGain.gain.value, time);
+    ambientGain.gain.linearRampToValueAtTime(0.0, time + 1.8);
+
+    const oldSource = ambientSource;
+    const oldGain = ambientGain;
+
+    ambientSource = null;
+    ambientGain = null;
+
+    // Dọn dẹp tài nguyên sau khi fade out hoàn tất
+    setTimeout(() => {
+      if (oldSource) {
+        try {
+          oldSource.noiseNode.stop();
+          oldSource.windFilterLfo.stop();
+          oldSource.windGainLfo.stop();
+          oldSource.droneOsc1.stop();
+          oldSource.droneOsc2.stop();
+        } catch (e) {}
+      }
+      if (oldGain) {
+        try {
+          oldGain.disconnect();
+        } catch (e) {}
+      }
+    }, 2000);
+  } catch (e) {
+    console.error("Lỗi khi dừng âm thanh nền ban đêm:", e);
+  }
+};
+
+// Điều tiết âm lượng nhạc nền (Audio Ducking)
+export const duckNightAmbient = (isDucked) => {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx || !ambientGain) return;
+
+    const time = ctx.currentTime;
+    ambientGain.gain.setValueAtTime(ambientGain.gain.value, time);
+    // Nhỏ đi khi có giọng quản trò (duck về 0.15) và to lên khi quản trò im lặng (về lại 0.7)
+    ambientGain.gain.linearRampToValueAtTime(isDucked ? 0.15 : 0.7, time + 0.8);
+  } catch (e) {
+    console.error("Lỗi điều tiết âm lượng nhạc nền ban đêm:", e);
   }
 };

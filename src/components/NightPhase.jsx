@@ -8,7 +8,10 @@ import {
   resumeSpeaking,
   playDeepBell,
   playChime,
-  playTick
+  playTick,
+  startNightAmbient,
+  stopNightAmbient,
+  duckNightAmbient
 } from "../utils/speech";
 
 const NightPhase = ({ selectedRoles, audioConfig, onExit, onFinished }) => {
@@ -42,6 +45,13 @@ const NightPhase = ({ selectedRoles, audioConfig, onExit, onFinished }) => {
     isPausedRef.current = isPaused;
   }, [isPaused]);
 
+  // Điều tiết âm lượng nhạc nền ban đêm (Audio Ducking) khi người dẫn chuyện nói
+  useEffect(() => {
+    if (audioConfig.enableAmbient !== false) {
+      duckNightAmbient(isVoiceSpeaking && !isPaused);
+    }
+  }, [isVoiceSpeaking, isPaused, audioConfig.enableAmbient]);
+
   // Timers Refs
   const timerRef = useRef(null);
   const introTimeoutRef = useRef(null);
@@ -65,6 +75,7 @@ const NightPhase = ({ selectedRoles, audioConfig, onExit, onFinished }) => {
     startNight();
     return () => {
       stopSpeaking();
+      stopNightAmbient(); // Dừng nhạc nền khi rời màn hình
       clearAllTimeouts();
       if (timerRef.current) clearInterval(timerRef.current);
     };
@@ -79,6 +90,11 @@ const NightPhase = ({ selectedRoles, audioConfig, onExit, onFinished }) => {
     setCurrentRoleIndex(-1);
     
     playDeepBell();
+    
+    // Bắt đầu nhạc nền ban đêm
+    if (audioConfig.enableAmbient !== false) {
+      startNightAmbient();
+    }
     
     introTimeoutRef.current = setTimeout(() => {
       if (phaseStateRef.current !== "intro") return;
@@ -194,6 +210,7 @@ const NightPhase = ({ selectedRoles, audioConfig, onExit, onFinished }) => {
     setCurrentRoleIndex(wakingRoles.length);
 
     playDeepBell();
+    stopNightAmbient(); // Tắt nhạc nền khi trời sáng
 
     outroTimeoutRef.current = setTimeout(() => {
       if (phaseStateRef.current !== "outro") return;
@@ -302,6 +319,7 @@ const NightPhase = ({ selectedRoles, audioConfig, onExit, onFinished }) => {
   const handleExit = () => {
     setPhaseState("exited");
     stopSpeaking();
+    stopNightAmbient(); // Tắt nhạc nền khi thoát ngang
     clearAllTimeouts();
     if (timerRef.current) clearInterval(timerRef.current);
     onExit();

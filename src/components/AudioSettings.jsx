@@ -86,13 +86,16 @@ const AudioSettings = ({ audioConfig, setAudioConfig }) => {
             onChange={(e) => setAudioConfig(prev => ({ ...prev, voiceURI: e.target.value }))}
             className="w-full bg-white text-slate-800 border border-gray-250 rounded-xl p-2.5 text-xs sm:text-sm focus:outline-none focus:border-[#10b981] transition-all cursor-pointer shadow-sm hover:border-gray-300"
           >
-            {voices.map(voice => (
-              <option key={voice.voiceURI} value={voice.voiceURI}>
-                {voice.name} ({voice.lang}) {voice.localService ? "[Offline]" : ""}
-              </option>
-            ))}
-            {voices.length === 0 && (
-              <option value="">Không có giọng nói nào</option>
+            <option value="google-translate-online">Google Dịch (Online - Miễn phí - Khuyên dùng)</option>
+            
+            {voices.length > 0 && (
+              <optgroup label="Giọng đọc hệ thống (Offline)">
+                {voices.map(voice => (
+                  <option key={voice.voiceURI} value={voice.voiceURI}>
+                    {voice.name} ({voice.lang}) {voice.localService ? "[Offline]" : ""}
+                  </option>
+                ))}
+              </optgroup>
             )}
           </select>
         </div>
@@ -149,6 +152,23 @@ const AudioSettings = ({ audioConfig, setAudioConfig }) => {
               className="cursor-pointer"
             />
           </div>
+        </div>
+
+        {/* Cấu hình Nhạc nền ban đêm */}
+        <div className="flex items-center justify-between border-t border-gray-100 pt-4 pb-2">
+          <div className="flex flex-col pr-4">
+            <span className="text-xs sm:text-sm font-bold text-slate-800">Nhạc nền ban đêm (Ambient Sound)</span>
+            <span className="text-[10px] text-gray-400">Tự động phát tiếng gió hú và drone ma quái để che giấu tiếng động vật lý ban đêm</span>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={audioConfig.enableAmbient !== false}
+              onChange={(e) => setAudioConfig(prev => ({ ...prev, enableAmbient: e.target.checked }))}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10b981]"></div>
+          </label>
         </div>
 
         {/* Nút test giọng đọc */}

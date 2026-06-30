@@ -55,15 +55,25 @@ const App = () => {
     const saved = localStorage.getItem(STORAGE_AUDIO_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // Đảm bảo các trường mới luôn tồn tại
+        return {
+          voiceURI: "google-translate-online",
+          enableAmbient: true,
+          rate: 1.0,
+          pitch: 1.0,
+          volume: 1.0,
+          ...parsed
+        };
       } catch (e) {
         console.error("Lỗi đọc dữ liệu audio từ localStorage:", e);
       }
     }
     return {
-      voiceURI: "",
-      rate: 0.95,
-      pitch: 0.9,
+      voiceURI: "google-translate-online",
+      enableAmbient: true,
+      rate: 1.0,
+      pitch: 1.0,
       volume: 1.0
     };
   });
