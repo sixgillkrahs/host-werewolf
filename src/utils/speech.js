@@ -146,6 +146,8 @@ export const playGong = () => {
 
 // 2. Text-to-Speech Engine
 let currentUtterance = null;
+let currentOnlineAudio = null; // Quản lý phát âm thanh trực tuyến
+let activeUtterances = []; // Giữ tham chiếu để tránh bị Garbage Collected trong Chrome/Safari
 
 // Lấy danh sách các giọng nói hỗ trợ tiếng Việt
 export const getVietnameseVoices = () => {
@@ -158,10 +160,9 @@ export const getVietnameseVoices = () => {
   );
 };
 
-// Đọc một câu thoại với cấu hình tùy chọn
-export const speak = (text, options = {}, onStart = null, onEnd = null) => {
+// Hàm fallback dùng Web Speech API (hệ thống)
+const fallbackToSpeechSynthesis = (text, options, onStart, onEnd) => {
   if (typeof window === "undefined" || !window.speechSynthesis) {
-    // Nếu không hỗ trợ TTS, tự động hoàn thành ngay lập tức
     if (onStart) onStart();
     setTimeout(() => {
       if (onEnd) onEnd();
@@ -169,53 +170,240 @@ export const speak = (text, options = {}, onStart = null, onEnd = null) => {
     return;
   }
 
-  // Hủy âm thanh đang phát trước đó
-  window.speechSynthesis.cancel();
-
   const { voiceURI, rate = 1.0, pitch = 1.0, volume = 1.0 } = options;
 
-  currentUtterance = new SpeechSynthesisUtterance(text);
-  currentUtterance.rate = rate;
-  currentUtterance.pitch = pitch;
-  currentUtterance.volume = volume;
+  if (window.speechSynthesis.paused) {
+    window.speechSynthesis.resume();
+  }
+  window.speechSynthesis.cancel();
 
-  // Tìm giọng nói tương ứng
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = rate;
+  utterance.pitch = pitch;
+  utterance.volume = volume;
+
+  // Lưu tham chiếu để tránh Garbage Collection gây mất sự kiện
+  activeUtterances.push(utterance);
+  if (activeUtterances.length > 10) {
+    activeUtterances.shift();
+  }
+
   const voices = window.speechSynthesis.getVoices();
   const selectedVoice = voices.find(v => v.voiceURI === voiceURI);
   if (selectedVoice) {
-    currentUtterance.voice = selectedVoice;
+    utterance.voice = selectedVoice;
   } else {
-    // Fallback: Tìm giọng tiếng Việt đầu tiên
     const viVoices = voices.filter(v => v.lang.toLowerCase().includes("vi"));
     if (viVoices.length > 0) {
-      currentUtterance.voice = viVoices[0];
+      utterance.voice = viVoices[0];
     }
   }
 
-  if (onStart) {
-    currentUtterance.onstart = onStart;
-  }
+  let finished = false;
+  let failsafeTimer = null;
 
-  currentUtterance.onend = (event) => {
+  const handleEnd = () => {
+    if (finished) return;
+    finished = true;
+    if (failsafeTimer) clearTimeout(failsafeTimer);
+    
+    const idx = activeUtterances.indexOf(utterance);
+    if (idx > -1) activeUtterances.splice(idx, 1);
+    
     currentUtterance = null;
     if (onEnd) onEnd();
   };
 
-  currentUtterance.onerror = (event) => {
-    console.error("Lỗi phát giọng nói:", event);
-    currentUtterance = null;
-    if (onEnd) onEnd(); // Vẫn gọi để tránh tắc nghẽn game loop
+  utterance.onstart = () => {
+    if (onStart) onStart();
   };
 
-  window.speechSynthesis.speak(currentUtterance);
+  utterance.onend = () => {
+    handleEnd();
+  };
+
+  utterance.onerror = (e) => {
+    console.error("Lỗi phát giọng nói hệ thống:", e);
+    handleEnd();
+  };
+
+  currentUtterance = utterance;
+
+  const estimatedDuration = (text.length * (90 / rate)) + 6000;
+  failsafeTimer = setTimeout(() => {
+    console.warn("Failsafe offline kích hoạt.");
+    handleEnd();
+  }, estimatedDuration);
+
+  window.speechSynthesis.speak(utterance);
+
+  setTimeout(() => {
+    if (!window.speechSynthesis.speaking || window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+    }
+  }, 100);
+};
+
+// Đọc một câu thoại với cấu hình tùy chọn
+export const speak = (text, options = {}, onStart = null, onEnd = null) => {
+  // Hủy âm thanh đang phát trước đó (cả offline và online)
+  stopSpeaking();
+
+  const { voiceURI, viettelToken, rate = 1.0, pitch = 1.0, volume = 1.0 } = options;
+
+  // 1. Sử dụng dịch vụ Viettel AI TTS Online
+  if (voiceURI && voiceURI.startsWith("viettel-")) {
+    const viettelVoiceCode = voiceURI.replace("viettel-", "");
+    
+    if (!viettelToken) {
+      console.warn("Chưa cấu hình Viettel AI Token, chuyển sang Google Online.");
+      speak(text, { ...options, voiceURI: "google-translate-online" }, onStart, onEnd);
+      return;
+    }
+
+    try {
+      const url = "https://viettelai.vn/tts/speech_synthesis";
+      let viettelSpeed = 1.0;
+      if (rate) {
+        viettelSpeed = Math.min(Math.max(rate, 0.8), 1.2);
+      }
+
+      fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "accept": "*/*"
+        },
+        body: JSON.stringify({
+          token: viettelToken,
+          text: text,
+          voice: viettelVoiceCode,
+          speed: viettelSpeed,
+          tts_return_option: 3
+        })
+      })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const errData = await response.json();
+          throw new Error(errData.vi_message || errData.en_message || "Lỗi API Viettel AI");
+        }
+        
+        return response.blob();
+      })
+      .then((blob) => {
+        const audioUrl = URL.createObjectURL(blob);
+        currentOnlineAudio = new Audio(audioUrl);
+        currentOnlineAudio.volume = volume;
+
+        if (onStart) {
+          currentOnlineAudio.onplay = onStart;
+        }
+
+        let finished = false;
+        let failsafeTimer = null;
+
+        const handleAudioEnd = () => {
+          if (finished) return;
+          finished = true;
+          if (failsafeTimer) clearTimeout(failsafeTimer);
+          currentOnlineAudio = null;
+          URL.revokeObjectURL(audioUrl);
+          if (onEnd) onEnd();
+        };
+
+        currentOnlineAudio.onended = handleAudioEnd;
+        currentOnlineAudio.onerror = (e) => {
+          console.error("Lỗi phát file âm thanh Viettel AI:", e);
+          handleAudioEnd();
+        };
+
+        failsafeTimer = setTimeout(() => {
+          console.warn("Failsafe Viettel AI kích hoạt do hết thời gian chờ.");
+          handleAudioEnd();
+        }, 25000);
+
+        currentOnlineAudio.play().catch(err => {
+          console.error("Trình duyệt chặn tự động phát audio Viettel, dùng Google online:", err);
+          handleAudioEnd();
+        });
+      })
+      .catch((err) => {
+        console.error("Lỗi gọi API Viettel AI:", err.message);
+        speak(text, { ...options, voiceURI: "google-translate-online" }, onStart, onEnd);
+      });
+      return;
+    } catch (e) {
+      console.error("Lỗi khởi tạo Viettel AI TTS:", e);
+      speak(text, { ...options, voiceURI: "google-translate-online" }, onStart, onEnd);
+      return;
+    }
+  }
+
+  // 2. Sử dụng dịch vụ Google Translate TTS Online miễn phí
+  if (voiceURI === "google-translate-online") {
+    try {
+      const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=${encodeURIComponent(text)}`;
+      currentOnlineAudio = new Audio(url);
+      currentOnlineAudio.playbackRate = rate;
+      currentOnlineAudio.volume = volume;
+
+      if (onStart) {
+        currentOnlineAudio.onplay = onStart;
+      }
+
+      let finished = false;
+      let failsafeTimer = null;
+
+      const handleAudioEnd = () => {
+        if (finished) return;
+        finished = true;
+        if (failsafeTimer) clearTimeout(failsafeTimer);
+        currentOnlineAudio = null;
+        if (onEnd) onEnd();
+      };
+
+      currentOnlineAudio.onended = handleAudioEnd;
+      currentOnlineAudio.onerror = (e) => {
+        console.error("Lỗi phát giọng nói Google Online:", e);
+        handleAudioEnd();
+      };
+
+      failsafeTimer = setTimeout(() => {
+        console.warn("Failsafe Google TTS kích hoạt do hết thời gian chờ.");
+        handleAudioEnd();
+      }, 20000);
+
+      currentOnlineAudio.play().catch(err => {
+        console.error("Trình duyệt chặn tự động phát audio Google, chuyển sang offline:", err);
+        fallbackToSpeechSynthesis(text, options, onStart, onEnd);
+      });
+      return;
+    } catch (e) {
+      console.error("Lỗi khởi tạo Google TTS:", e);
+      fallbackToSpeechSynthesis(text, options, onStart, onEnd);
+      return;
+    }
+  }
+
+  // Mặc định chạy giọng đọc hệ thống
+  fallbackToSpeechSynthesis(text, options, onStart, onEnd);
 };
 
 // Hủy phát giọng nói hiện tại
 export const stopSpeaking = () => {
   if (typeof window !== "undefined" && window.speechSynthesis) {
     window.speechSynthesis.cancel();
-    currentUtterance = null;
   }
+  if (currentOnlineAudio) {
+    currentOnlineAudio.pause();
+    currentOnlineAudio = null;
+  }
+  currentUtterance = null;
 };
 
 // Tạm dừng phát giọng nói
@@ -223,11 +411,17 @@ export const pauseSpeaking = () => {
   if (typeof window !== "undefined" && window.speechSynthesis) {
     window.speechSynthesis.pause();
   }
+  if (currentOnlineAudio) {
+    currentOnlineAudio.pause();
+  }
 };
 
 // Tiếp tục phát giọng nói
 export const resumeSpeaking = () => {
   if (typeof window !== "undefined" && window.speechSynthesis) {
     window.speechSynthesis.resume();
+  }
+  if (currentOnlineAudio) {
+    currentOnlineAudio.play().catch(e => console.error("Lỗi tiếp tục phát audio online:", e));
   }
 };
